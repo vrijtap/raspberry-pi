@@ -49,11 +49,13 @@ def main():
             else:
                 print("No cup found, rechecking.")
     
-        print("So far the cup and the account have been checked, \nwe are back in the main loop.")
 
         if i2c.send_and_check(START):
             # Code for starting tap here.
             mdb.decreaseBeer()
+            received_data = i2c.receive_data()
+
+        print("So far the cup and the account have been checked, and a beer has been reducted \nwe are back in the main loop.")
 
         if input("Quit? (y/n): ").strip().lower() == 'y':
             break
