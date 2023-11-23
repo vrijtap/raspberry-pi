@@ -22,6 +22,12 @@ class CupClassification:
         try:
             self.model = load_model(model_path)
             print("Model loaded successfully.")
+            
+            # Check if the model has the expected input shape
+            input_shape = self.model.input_shape[1:]  # Exclude batch size
+            expected_shape = (64, 64, 3)
+            if input_shape != expected_shape:
+                raise ValueError(f"Expected input shape {expected_shape}, but model has input shape {input_shape}")
         except Exception as e:
             print(f"Error loading the model: {e}")
         
