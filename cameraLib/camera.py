@@ -53,3 +53,10 @@ class Camera:
         filename = f"{path}{name}_{current_datetime}.jpg"
         self.picam2.capture_file(filename)
         self.picam2.stop()
+
+    # Function to capture a picture as an array.
+    def captureArray(self):
+        self.picam2.start()
+        image_array = self.picam2.capture_array()
+        self.picam2.stop()
+        return image_array
