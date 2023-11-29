@@ -16,10 +16,10 @@ Date:   05-10-2023
 class Camera:
     # Picture_size will be used to create an image of corresponding size.
     def __init__(self, picture_size):
-        if picture_size < 64:
+        if picture_size < 64 or picture_size > 64:
             picture_size = 64
-            warnings.warn("picture_size must be atleast 64. Defaulted to 64...")
-        
+            warnings.warn("Picture_size must be 64x64. Defaulted to 64x64...")
+
         self.picture_size = picture_size
         self.picam2 = Picamera2()
         self.__configure_camera()
