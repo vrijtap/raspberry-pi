@@ -39,7 +39,7 @@ def main():
         # Loop that checks for the cup being there 
         cupLoop = True
         while cupLoop:
-            cam.capture("/home/pi/images/", "img")
+            img = cam.captureArray()
 
             # Check for exit condition, use AI to determine if it's a cup we accept.
             cupDetection = input("Cup detected? (y/n): ").strip().lower()
