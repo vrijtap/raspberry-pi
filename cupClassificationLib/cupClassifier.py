@@ -31,7 +31,7 @@ class CupClassifier:
         except Exception as e:
             print(f"Error loading the model: {e}")
 
-    def classify(self, img: np.ndarray) -> float:
+    def classify(self, img: np.ndarray) -> bool:
         """
         Classify the input image and determine if it contains a cup.
 

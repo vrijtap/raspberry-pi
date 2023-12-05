@@ -40,7 +40,7 @@ def main():
         # Loop that checks for the cup being there 
         cupLoop = True
         cupResult = False
-        timeout = 300
+        timeout = 10
         treshold = 0.75
         startTime = time.time()
         while cupLoop:
@@ -50,12 +50,12 @@ def main():
             # Manage the result
             if(result > treshold):
                 print(f'Found cup: certainty {result}')
+                cupResult = True
                 cupLoop = False
 
             # Manage the timeout
             elif(time.time() - startTime > timeout):
                 print("Cup not found")
-                cupResult = True
                 cupLoop = False
             
             print(f'Cup certainty: {result}')
