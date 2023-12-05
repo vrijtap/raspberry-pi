@@ -40,8 +40,8 @@ def main():
         # Loop that checks for the cup being there 
         cupLoop = True
         cupResult = False
-        timeout = 10
-        treshold = 0.5
+        timeout = 300
+        treshold = 0.75
         startTime = time.time()
         while cupLoop:
             img = cam.captureArray()
@@ -54,7 +54,7 @@ def main():
 
             # Manage the timeout
             elif(time.time() - startTime > timeout):
-                print("Error 404: Cup not found")
+                print("Cup not found")
                 cupResult = True
                 cupLoop = False
             
