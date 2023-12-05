@@ -1,6 +1,7 @@
 from tensorflow.keras.models import load_model
 import cv2
 import numpy as np
+from cameraLib  import camera
 
 class CupClassification:
     """
@@ -57,6 +58,9 @@ class CupClassification:
         # Return True if the model predicts the presence of a cup with confidence above the threshold
         predictions = self.model.predict(X)
         return True if predictions[0] > self.classification_threshold else False
+    
+    def await_classify(self, camera: camera.Camera, timeout: float) -> bool:
+        """"""
 
 # test main
 if __name__ == '__main__':
