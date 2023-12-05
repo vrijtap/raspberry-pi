@@ -7,8 +7,13 @@ import time
 This module is controlling the I2C connection between the pi and a device on a set port.
 
 Author: Diego Brandjes
-Date:   06-10-2023
+Date:   30-11-2023
 """
+
+SM_PAUSED_STATE  = 2
+SM_START = 1
+SM_STOP = 0
+
 class Bus:
 
     # start database connection 
@@ -44,13 +49,12 @@ class Bus:
             if self.receive_data() == data:
                 print("Message Delivered successfully!")
                 return True
+            if data == SM_STOP and self.receive_data() == SM_PAUSED_STATE:
+                print("Message Delivered successfully!")
+                return True
             else:
                 print("Error receiving/sending message.")
                 return False
         except Exception as e:
             print("Error setting up the I2C device")
             return False
-
-    
-
-  
