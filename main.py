@@ -18,12 +18,15 @@ SM_PAUSED_STATE  = 2
 SM_START = 1
 SM_STOP = 0
 
+CUP_TIMEOUT = 10
+CUP_TRESHOLD = 0.75
+
 def main():
     uri = config('URI')
     # Initialization of libraries
     i2c = bus.Bus(1, 0x8)
     cam = camera.Camera(64)
-    classifier = cupClassifier.CupClassifier('model.h5')
+    classifier = cupClassifier.CupClassifier('model.h5', CUP_TRESHOLD)
     rfid = readerRFID.Rfid()
     mdb = mongo.Mongo(uri, 'backend', 'cards')
 
@@ -39,28 +42,20 @@ def main():
 
         # Loop that checks for the cup being there 
         cupLoop = True
-        cupResult = False
-        timeout = 10
-        treshold = 0.75
+        cupDetected = False
         startTime = time.time()
         while cupLoop:
+            # Capture an image
             img = cam.captureArray()
-            result = classifier.classify(img)
+
+            # Check for cups
+            cupDetected = classifier.classify(img)
 
             # Manage the result
-            if(result > treshold):
-                print(f'Found cup: certainty {result}')
-                cupResult = True
+            if(cupDetected == True or time.time() - startTime > CUP_TIMEOUT):
                 cupLoop = False
 
-            # Manage the timeout
-            elif(time.time() - startTime > timeout):
-                print("Cup not found")
-                cupLoop = False
-            
-            print(f'Cup certainty: {result}')
-
-        if cupResult == True and i2c.send_and_check(SM_START):
+        if cupDetected == True and i2c.send_and_check(SM_START):
             # Code for starting tap here.
             mdb.decreaseBeer()
             

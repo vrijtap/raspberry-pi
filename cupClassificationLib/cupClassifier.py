@@ -10,7 +10,7 @@ class CupClassifier:
     - model_path (str): A string representing the file path to the model.
     - classification_threshold (float): A float representing the classification threshold. Default is 0.5.
     """
-    def __init__(self, model_path: str) -> None:
+    def __init__(self, model_path: str, treshold: float) -> None:
         """
         Initialize the CupClassification instance.
 
@@ -30,6 +30,9 @@ class CupClassifier:
                 raise ValueError(f"Expected input shape {expected_shape}, but model has input shape {input_shape}")
         except Exception as e:
             print(f"Error loading the model: {e}")
+
+        # Define the treshold
+        self.treshold = treshold
 
     def classify(self, img: np.ndarray) -> bool:
         """
@@ -56,4 +59,4 @@ class CupClassifier:
 
         # Return True if the model predicts the presence of a cup with confidence above the threshold
         predictions = self.model.predict(X, verbose=0)
-        return predictions[0, 0]
+        return True if predictions[0, 0] > self.treshold else False
