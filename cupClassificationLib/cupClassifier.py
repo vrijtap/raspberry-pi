@@ -1,9 +1,8 @@
 from tensorflow.keras.models import load_model
 import cv2
 import numpy as np
-from cameraLib  import camera
 
-class CupClassification:
+class CupClassifier:
     """
     Initializes an instance of CupClassification with a given model.
 
@@ -11,7 +10,7 @@ class CupClassification:
     - model_path (str): A string representing the file path to the model.
     - classification_threshold (float): A float representing the classification threshold. Default is 0.5.
     """
-    def __init__(self, model_path: str, classification_threshold: float = 0.5) -> None:
+    def __init__(self, model_path: str) -> None:
         """
         Initialize the CupClassification instance.
 
@@ -31,11 +30,8 @@ class CupClassification:
                 raise ValueError(f"Expected input shape {expected_shape}, but model has input shape {input_shape}")
         except Exception as e:
             print(f"Error loading the model: {e}")
-        
-        # Set the (default) classification threshold
-        self.classification_threshold = classification_threshold
 
-    def classify(self, img: np.ndarray) -> bool:
+    def classify(self, img: np.ndarray) -> float:
         """
         Classify the input image and determine if it contains a cup.
 
@@ -51,19 +47,13 @@ class CupClassification:
         if img.shape != (64, 64, 3):
             raise ValueError("Input image shape must be (64, 64, 3)")
 
+        # Convert image to BGR
+        img_bgr = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+
         # Transform the data for model input
-        X = np.array([img])
+        X = np.array([img_bgr])
         X = X / 255.0
 
         # Return True if the model predicts the presence of a cup with confidence above the threshold
-        predictions = self.model.predict(X)
-        return True if predictions[0] > self.classification_threshold else False
-    
-    def await_classify(self, camera: camera.Camera, timeout: float) -> bool:
-        """"""
-
-# test main
-if __name__ == '__main__':
-    instance = CupClassification('model.h5')
-    result = instance.classify(cv2.imread('test-image.jpg', cv2.IMREAD_COLOR))
-    print(result)
+        predictions = self.model.predict(X, verbose=0)
+        return predictions[0, 0]

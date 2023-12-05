@@ -5,23 +5,25 @@ It saves multiple pictures in a folder or path specified by the user of the func
 Author: Diego Brandjes
 Date:   30-11-2023
 """
-from cameraLib  import camera
+from cameraLib import camera
+from cupClassificationLib import cupClassifier
 from mongoLib  import mongo
 from decouple import config
 from rfidLib import readerRFID
 from i2cLib import bus
+
+import time
 
 SM_PAUSED_STATE  = 2
 SM_START = 1
 SM_STOP = 0
 
 def main():
-
-
     uri = config('URI')
     # Initialization of libraries
     i2c = bus.Bus(1, 0x8)
     cam = camera.Camera(64)
+    classifier = cupClassifier.CupClassifier('model.h5')
     rfid = readerRFID.Rfid()
     mdb = mongo.Mongo(uri, 'backend', 'cards')
 
@@ -30,7 +32,6 @@ def main():
 
         accountLoop = True
         while accountLoop:
-
             uid = rfid.read() # reads data from card
 
             if mdb.userExists(uid) == True: 
@@ -38,15 +39,28 @@ def main():
 
         # Loop that checks for the cup being there 
         cupLoop = True
+        cupResult = False
+        timeout = 10
+        treshold = 0.5
+        startTime = time.time()
         while cupLoop:
             img = cam.captureArray()
+            result = classifier.classify(img)
 
-            # Check for exit condition, use AI to determine if it's a cup we accept.
-            cupDetection = input("Cup detected? (y/n): ").strip().lower()
-            if cupDetection == 'y':
+            # Manage the result
+            if(result > treshold):
+                print(f'Found cup: certainty {result}')
                 cupLoop = False
-    
-        if i2c.send_and_check(SM_START):
+
+            # Manage the timeout
+            elif(time.time() - startTime > timeout):
+                print("Error 404: Cup not found")
+                cupResult = True
+                cupLoop = False
+            
+            print(f'Cup certainty: {result}')
+
+        if cupResult == True and i2c.send_and_check(SM_START):
             # Code for starting tap here.
             mdb.decreaseBeer()
             
