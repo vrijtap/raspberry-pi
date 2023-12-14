@@ -3,7 +3,7 @@ This file is the main program loop for a larger project that controls the Raspbe
 It saves multiple pictures in a folder or path specified by the user of the function and interacts with an RFID reader.
 
 Author: Diego Brandjes
-Date:   12-12-2023
+Date:   14-12-2023
 """
 from cameraLib import camera
 from cupClassificationLib import cupClassifier
@@ -64,7 +64,7 @@ def main():
 
             # Check for cups
             cupDetected = classifier.classify(img)
-
+            
             # Manage the result
             if(cupDetected == True or time.time() - startTime > CUP_TIMEOUT):
                 cupLoop = False
@@ -78,8 +78,8 @@ def main():
                 # This statement will read the weight data only when the read data is within the desired range.
                 if i2c.receive_data() > 2 and i2c.receive_data() < 255:
                     capacity = i2c.receive_data() - 100
+                    print(capacity)
                     weightLoop = False
-                    break
         
     rfid.closeGPIO()
     mdb.closeConnection()
