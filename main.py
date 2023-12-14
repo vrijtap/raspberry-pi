@@ -7,14 +7,17 @@ Date:   12-12-2023
 """
 from cameraLib import camera
 from cupClassificationLib import cupClassifier
-from rfidLib import readerRFID
-from apiLib import SimpleApi
-from decouple import config
 from mongoLib  import mongo
+from decouple import config
+from rfidLib import readerRFID
 from i2cLib import bus
 
-from threading import Thread
+from flask import Flask, jsonify
 import time
+from threading import Thread
+
+app = Flask(__name__)
+capacity = 0
 
 SM_PAUSED_STATE  = 2
 SM_START = 1
@@ -23,19 +26,22 @@ SM_STOP = 0
 CUP_TIMEOUT = 10
 CUP_TRESHOLD = 0.75
 
+@app.route('/capacity', methods=['GET'])
+def get_integer():
+    return jsonify({'capacity of the tank': capacity}), 200
+
+
 def main():
+
+    global capacity # holds the value of the tank percentage
     uri = config('URI')
+
     # Initialization of libraries
-    api_instance = SimpleApi()
     i2c = bus.Bus(1, 0x8)
     cam = camera.Camera(64)
     classifier = cupClassifier.CupClassifier('model.h5', CUP_TRESHOLD)
     rfid = readerRFID.Rfid()
     mdb = mongo.Mongo(uri, 'backend', 'cards')
-
-    # Run the API in a separate thread
-    api_thread = Thread(target=api_instance.run_api)
-    api_thread.start()
 
     running = True
     while running:
@@ -45,9 +51,6 @@ def main():
             uid = rfid.read() # reads data from card
 
             if mdb.userExists(uid) == True: 
-                # Get the current value
-                response = requests.get('http://127.0.0.1:5000/get_value')
-                print(response.json())
                 accountLoop = False                
 
         # Loop that checks for the cup being there 
@@ -74,17 +77,18 @@ def main():
             while weightLoop:
                 # This statement will read the weight data only when the read data is within the desired range.
                 if i2c.receive_data() > 2 and i2c.receive_data() < 255:
-                    tankPercentage = i2c.receive_data() - 100
-                    requests.post('http://127.0.0.1:5000/set_value', json={'value': tankPercentage})
+                    capacity = i2c.receive_data() - 100
                     weightLoop = False
                     break
-                
         
     rfid.closeGPIO()
     mdb.closeConnection()
-    
-    # Ensure the API thread is properly terminated when your main code is done
-    api_thread.join()
+    flask_thread.join()
 
-if __name__ == "__main__":
+def run_flask():
+    app.run(host='0.0.0.0', port=5000)
+
+if __name__ == '__main__':
+    flask_thread = Thread(target=run_flask)
+    flask_thread.start()
     main()
