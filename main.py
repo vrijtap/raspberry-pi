@@ -64,8 +64,7 @@ def main():
             while weightLoop:
                 # This statement will read the weight data only when the read data is within the desired range.
                 if i2c.receive_data() > 2 and i2c.receive_data() < 255:
-                    weightData = i2c.receive_data()
-                    print(weightData-100) # use for checking
+                    tankPercentage = i2c.receive_data() - 100
                     weightLoop = False
                     break
         
