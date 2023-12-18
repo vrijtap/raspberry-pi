@@ -73,6 +73,9 @@ def main():
             uid = rfid.read() # reads data from card
 
             if mdb.userExists(uid) == True: 
+                capacity = i2c.receive_data()
+                print(capacity) # prints capacity for checking only
+
                 accountLoop = False                
 
         # Loop that checks for the cup being there 
@@ -93,16 +96,30 @@ def main():
 
         # Sends and checks the starting value for the tap.
         if cupDetected == True and i2c.send_and_check(SM_START):
-            mdb.decreaseBeer()
-            
+            tapping_state = True
             weightLoop = True
             while weightLoop:
                 # This statement will read the weight data only when the read data is within the desired range.
-                if i2c.receive_data() > SM_PAUSED_STATE and i2c.receive_data() < MAX_RETURNED_VALUE:
-                    capacity = i2c.receive_data() - SCALE_MODIFIER # Removes the added modifier to recover the real percentage.
+                i2c_result = i2c.receive_data()
+                print(i2c_result)
+                if i2c_result == None:
+                    continue
+                
+                pause_check = classifier.classify(cam.captureArray())
+                if (pause_check != tapping_state):
+                    i2c.send_and_check(pause_check)
+                    tapping_state = pause_check
+                    continue
+
+                if (i2c_result > SM_PAUSED_STATE and i2c_result < MAX_RETURNED_VALUE and i2c_result - 10 <= capacity):
+                    capacity = i2c_result - SCALE_MODIFIER # Removes the added modifier to recover the real percentage.
                     print(capacity) # prints capacity for checking only
+                    mdb.decreaseBeer()
                     weightLoop = False
-        
+                elif (i2c_result > SM_PAUSED_STATE and i2c_result < MAX_RETURNED_VALUE):
+                    weightLoop = False
+                                   
+                time.sleep(0.016)
     # Closes the running tasks and joins the threads.
     rfid.closeGPIO()
     mdb.closeConnection()
