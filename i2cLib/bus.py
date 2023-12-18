@@ -38,7 +38,6 @@ class Bus:
 
     def receive_data(self):
         try:
-
             return self.bus.read_byte(self.arduino_address)
         except Exception as e:
             print("Error setting up the I2C device")
@@ -46,10 +45,11 @@ class Bus:
     def send_and_check(self, data):
         try:
             self.send_data(data)
-            if self.receive_data() == data:
+            received = self.receive_data()
+            if received == data:
                 print("Message Delivered successfully!")
                 return True
-            if data == SM_STOP and self.receive_data() == SM_PAUSED_STATE:
+            elif data == SM_STOP and received == SM_PAUSED_STATE:
                 print("Message Delivered successfully!")
                 return True
             else:
