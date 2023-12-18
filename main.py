@@ -101,10 +101,13 @@ def main():
             
             weightLoop = True
             while weightLoop:
-                 
+
                 # Sets state to paused in case the image doesn't contain a cup
-                if(classifier.classify(cam.captureArray()) == False):
+                if(classifier.classify(cam.captureArray()) == False and i2c.receive_data() != SM_PAUSED_STATE):
                     i2c.send_and_check(SM_PAUSED_STATE)
+
+                elif(classifier.classify(cam.captureArray() and i2c.receive_data() != SM_START)):
+                    i2c.send_and_check(SM_START)
 
                 # This statement will read the weight data only when the read data is within the desired range.
                 if (i2c.receive_data() > SM_PAUSED_STATE and i2c.receive_data() < MAX_RETURNED_VALUE and i2c.receive_data() - 10 <= capacity):
