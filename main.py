@@ -1,8 +1,10 @@
 """
 This file is the main program loop for a larger project that controls the Raspberry Pi's camera and an RFID reader. 
-It saves multiple pictures in a folder or path specified by the user of the function and interacts with an RFID reader.
+It saves an image as an array which is checked for a cup. The program will send out I2C data to a 
+slave which responds accordingly. The program will host an API while doing this to hold the value which the slave returns.
 
 Author: Diego Brandjes
+Student Number: 500831945
 Date:   18-12-2023
 """
 from cameraLib import camera
