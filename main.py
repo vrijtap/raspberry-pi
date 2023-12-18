@@ -68,6 +68,11 @@ def main():
     running = True
     while running:
 
+        # loads the 'capacity' with the filled tank data
+        if i2c.receive_data() > SM_PAUSED_STATE and i2c.receive_data() < MAX_RETURNED_VALUE:
+            capacity = i2c.receive_data()
+
+
         accountLoop = True
         while accountLoop:
             uid = rfid.read() # reads data from card
@@ -93,16 +98,21 @@ def main():
 
         # Sends and checks the starting value for the tap.
         if cupDetected == True and i2c.send_and_check(SM_START):
-            mdb.decreaseBeer()
             
             weightLoop = True
             while weightLoop:
+                 
+                # Sets state to paused in case the image doesn't contain a cup
+                if(classifier.classify(cam.captureArray()) == False):
+                    i2c.send_and_check(SM_PAUSED_STATE)
+
                 # This statement will read the weight data only when the read data is within the desired range.
-                if i2c.receive_data() > SM_PAUSED_STATE and i2c.receive_data() < MAX_RETURNED_VALUE:
+                if (i2c.receive_data() > SM_PAUSED_STATE and i2c.receive_data() < MAX_RETURNED_VALUE and i2c.receive_data() - 10 <= capacity):
                     capacity = i2c.receive_data() - SCALE_MODIFIER # Removes the added modifier to recover the real percentage.
                     print(capacity) # prints capacity for checking only
+                    mdb.decreaseBeer()
                     weightLoop = False
-        
+                                   
     # Closes the running tasks and joins the threads.
     rfid.closeGPIO()
     mdb.closeConnection()
