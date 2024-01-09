@@ -5,7 +5,7 @@ slave which responds accordingly. The program will host an API while doing this 
 
 Author: Diego Brandjes
 Student Number: 500831945
-Date:   18-12-2023
+Date:   09-01-2024
 """
 from cameraLib import camera
 from cupClassificationLib import cupClassifier
@@ -32,7 +32,7 @@ MAX_RETURNED_VALUE = 255
 SCALE_MODIFIER = 100
 
 # Cup threshold and timout values
-CUP_TIMEOUT = 10
+CUP_TIMEOUT = 999999
 CUP_TRESHOLD = 0.75
 
 # I2C Bus values
@@ -69,13 +69,12 @@ def main():
     while running:
 
         accountLoop = True
+        input("Press Enter to start user RFID input...")
         while accountLoop:
             uid = rfid.read() # reads data from card
 
             if mdb.userExists(uid) == True: 
                 capacity = i2c.receive_data()
-                print(capacity) # prints capacity for checking only
-
                 accountLoop = False                
 
         # Loop that checks for the cup being there 
@@ -83,43 +82,49 @@ def main():
         cupDetected = False
         startTime = time.time()
 
+        input("Press Enter to start cup classification...")
         while cupLoop:
             # Capture an image
             img = cam.captureArray()
 
             # Check for cups
             cupDetected = classifier.classify(img)
-            
+
             # Manage the result
             if(cupDetected == True or time.time() - startTime > CUP_TIMEOUT):
                 cupLoop = False
+        print(f'Cup classified; {cupDetected}')
 
         # Sends and checks the starting value for the tap.
-        if cupDetected == True and i2c.send_and_check(SM_START):
-            tapping_state = True
-            weightLoop = True
-            while weightLoop:
-                # This statement will read the weight data only when the read data is within the desired range.
-                i2c_result = i2c.receive_data()
-                print(i2c_result)
-                if i2c_result == None:
-                    continue
-                
-                pause_check = classifier.classify(cam.captureArray())
-                if (pause_check != tapping_state):
-                    i2c.send_and_check(pause_check)
-                    tapping_state = pause_check
-                    continue
+        if cupDetected == True:
+            input("Press Enter to start tapping...")
 
-                if (i2c_result > SM_PAUSED_STATE and i2c_result < MAX_RETURNED_VALUE and i2c_result - 10 <= capacity):
-                    capacity = i2c_result - SCALE_MODIFIER # Removes the added modifier to recover the real percentage.
-                    print(capacity) # prints capacity for checking only
-                    mdb.decreaseBeer()
-                    weightLoop = False
-                elif (i2c_result > SM_PAUSED_STATE and i2c_result < MAX_RETURNED_VALUE):
-                    weightLoop = False
-                                   
-                time.sleep(0.016)
+            if i2c.send_and_check(SM_START):
+                tapping_state = True
+                weightLoop = True
+                
+                while weightLoop:
+                    # This statement will read the weight data only when the read data is within the desired range.
+                    i2c_result = i2c.receive_data()
+                    if i2c_result == None:
+                        continue
+                    
+                    pause_check = classifier.classify(cam.captureArray())
+                    if (pause_check != tapping_state):
+                        print(f'Sending State Change Signal: {pause_check}')
+                        i2c.send_and_check(pause_check)
+                        tapping_state = pause_check
+                        continue
+
+                    if (i2c_result > SM_PAUSED_STATE and i2c_result < MAX_RETURNED_VALUE and i2c_result - 10 <= capacity):
+                        capacity = i2c_result - SCALE_MODIFIER # Removes the added modifier to recover the real percentage.
+                        print(f'Final Capacity: {capacity}%')
+                        mdb.decreaseBeer()
+                        weightLoop = False
+                    elif (i2c_result > SM_PAUSED_STATE and i2c_result < MAX_RETURNED_VALUE):
+                        weightLoop = False
+                                    
+                    time.sleep(0.016)
     # Closes the running tasks and joins the threads.
     rfid.closeGPIO()
     mdb.closeConnection()
