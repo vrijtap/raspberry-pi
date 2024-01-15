@@ -25,7 +25,7 @@ class CupClassifier:
             
             # Check if the model has the expected input shape
             input_shape = self.model.input_shape[1:]  # Exclude batch size
-            expected_shape = (64, 64, 3)
+            expected_shape = (64, 64, 1)
             if input_shape != expected_shape:
                 raise ValueError(f"Expected input shape {expected_shape}, but model has input shape {input_shape}")
         except Exception as e:
@@ -47,14 +47,15 @@ class CupClassifier:
         Raises:
         - ValueError: If the input image shape is not (64, 64, 3).
         """
+        img = np.array(img)
         if img.shape != (64, 64, 3):
             raise ValueError("Input image shape must be (64, 64, 3)")
-
-        # Convert image to BGR
-        img_bgr = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+        
+        # Convert image to grayscale
+        img_gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
 
         # Transform the data for model input
-        X = np.array([img_bgr])
+        X = np.array([img_gray])
         X = X / 255.0
 
         # Return True if the model predicts the presence of a cup with confidence above the threshold
