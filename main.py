@@ -49,7 +49,7 @@ CAM_SIZE = 64
 
 @app.route('/capacity', methods=['GET'])
 def get_integer():
-    return jsonify({'capacity of the tank': capacity}), API_SUCCES
+    return str(capacity)
 
 
 # Main program loop
