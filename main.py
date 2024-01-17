@@ -32,7 +32,7 @@ MAX_RETURNED_VALUE = 255
 SCALE_MODIFIER = 100
 
 # Cup threshold and timout values
-CUP_TIMEOUT = 999999
+CUP_TIMEOUT = 20
 CUP_TRESHOLD = 0.75
 
 # I2C Bus values
