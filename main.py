@@ -5,7 +5,7 @@ slave which responds accordingly. The program will host an API while doing this 
 
 Author: Diego Brandjes
 Student Number: 500831945
-Date:   09-01-2024
+Date:   17-01-2024
 """
 from cameraLib import camera
 from cupClassificationLib import cupClassifier
@@ -69,7 +69,6 @@ def main():
     while running:
 
         accountLoop = True
-        input("Press Enter to start user RFID input...")
         while accountLoop:
             uid = rfid.read() # reads data from card
 
@@ -82,7 +81,6 @@ def main():
         cupDetected = False
         startTime = time.time()
 
-        input("Press Enter to start cup classification...")
         while cupLoop:
             # Capture an image
             img = cam.captureArray()
@@ -97,7 +95,6 @@ def main():
 
         # Sends and checks the starting value for the tap.
         if cupDetected == True:
-            input("Press Enter to start tapping...")
 
             if i2c.send_and_check(SM_START):
                 tapping_state = True
